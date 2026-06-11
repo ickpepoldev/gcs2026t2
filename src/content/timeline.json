@@ -1,0 +1,99 @@
+{
+  "periods": [
+    {
+      "id": 1,
+      "name": {
+        "en": "Late Eastern Han",
+        "zh-CN": "东汉末年",
+        "zh-TW": "東漢末年"
+      },
+      "year": "184-220 AD",
+      "fact": {
+        "en": "The Yellow Turban Rebellion marks the beginning of the end for the Han Dynasty. Warlords rise to power as central authority collapses.",
+        "zh-CN": "黄巾起义标志着汉朝衰落的开始。随着中央权威的崩溃，军阀崛起掌权。",
+        "zh-TW": "黃巾起義標誌著漢朝衰落的開始。隨著中央權威的崩潰，軍閥崛起掌權。"
+      },
+      "quote": {
+        "en": "\"The empire, long divided, must unite; long united, must divide.\"",
+        "zh-CN": "“天下大势，分久必合，合久必分。”",
+        "zh-TW": "「天下大勢，分久必合，合久必分。」"
+      }
+    },
+    {
+      "id": 2,
+      "name": {
+        "en": "Battle of Guandu",
+        "zh-CN": "官渡之战",
+        "zh-TW": "官渡之戰"
+      },
+      "year": "200 AD",
+      "fact": {
+        "en": "Cao Cao defeats Yuan Shao in a decisive battle, establishing control over northern China and setting the stage for the Three Kingdoms.",
+        "zh-CN": "曹操在决定性战役中击败袁绍，确立了对中国北方的控制，为三国鼎立奠定了基础。",
+        "zh-TW": "曹操在決定性戰役中擊敗袁紹，確立了對中國北方的控制，為三國鼎立奠定了基礎。"
+      },
+      "quote": {
+        "en": "\"He who excels in resolving difficulties enjoys eventual triumph.\"",
+        "zh-CN": "“能解决困难的人，最终将获得胜利。”",
+        "zh-TW": "「能解決困難的人，最終將獲得勝利。」"
+      }
+    },
+    {
+      "id": 3,
+      "name": {
+        "en": "Battle of Red Cliffs",
+        "zh-CN": "赤壁之战",
+        "zh-TW": "赤壁之戰"
+      },
+      "year": "208 AD",
+      "fact": {
+        "en": "The allied forces of Sun Quan and Liu Bei defeat Cao Cao's massive fleet using fire attack, preventing unification of China under Cao Cao.",
+        "zh-CN": "孙权和刘备的联军利用火攻击败曹操的庞大舰队，阻止了曹操统一中国。",
+        "zh-TW": "孫權和劉備的聯軍利用火攻擊敗曹操的龐大艦隊，阻止了曹操統一中國。"
+      },
+      "quote": {
+        "en": "\"The southeast wind rises at this very moment!\"",
+        "zh-CN": "“此时东南风大起！”",
+        "zh-TW": "「此時東南風大起！」"
+      }
+    },
+    {
+      "id": 4,
+      "name": {
+        "en": "Three Kingdoms Established",
+        "zh-CN": "三国鼎立",
+        "zh-TW": "三國鼎立"
+      },
+      "year": "220-280 AD",
+      "fact": {
+        "en": "Wei, Shu, and Wu emerge as three rival kingdoms. The Han Dynasty formally ends, beginning an era of constant warfare and strategic alliances.",
+        "zh-CN": "魏、蜀、吴三国鼎立。汉朝正式结束，开始了持续战争和战略联盟的时代。",
+        "zh-TW": "魏、蜀、吳三國鼎立。漢朝正式結束，開始了持續戰爭和戰略聯盟的時代。"
+      },
+      "quote": {
+        "en": "\"The world under heaven, after a long period of division, tends to unite.\"",
+        "zh-CN": "“天下大势，分久必合。”",
+        "zh-TW": "「天下大勢，分久必合。」"
+      }
+    },
+    {
+      "id": 5,
+      "name": {
+        "en": "Jin Dynasty Unification",
+        "zh-CN": "三家归晋",
+        "zh-TW": "三家歸晉"
+      },
+      "year": "280 AD",
+      "fact": {
+        "en": "The Jin Dynasty conquers Wu, reuniting China under one rule after nearly a century of division. The Three Kingdoms era comes to an end.",
+        "zh-CN": "晋朝征服吴国，在近一个世纪的分裂后重新统一中国。三国时代结束。",
+        "zh-TW": "晉朝征服吳國，在近一個世紀的分裂後重新統一中國。三國時代結束。"
+      },
+      "quote": {
+        "en": "\"All under heaven is one family.\"",
+        "zh-CN": "“天下一家。”",
+        "zh-TW": "「天下一家。」"
+      }
+    }
+  ]
+}
