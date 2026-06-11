@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -410,7 +410,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
   const [windDirection, setWindDirection] = useState(135); // SE is ~135°
   const [health, setHealth] = useState(100);
   const [maxHealth] = useState(100);
-  const [enemyHealth, setEnemyHealth] = useState(100);
+  const [enemyHealth] = useState(100);
   const [maxEnemyHealth] = useState(100);
   const [tickDamageCount, setTickDamageCount] = useState(0); // Active arrow wounds causing bleed
   const [chainedShips, setChainedShips] = useState<Set<number>>(new Set());
