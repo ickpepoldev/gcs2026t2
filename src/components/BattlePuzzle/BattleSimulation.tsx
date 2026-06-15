@@ -423,10 +423,13 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
   const [showHint, setShowHint] = useState(true);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isGoodWind, setIsGoodWind] = useState(false);
+  const [reloadTime, setReloadTime] = useState(0); // Reload timer in seconds
+  const [isReloading, setIsReloading] = useState(false);
 
   const gameStartTime = useRef(Date.now());
   const projectileIdRef = useRef(0);
   const damageIdRef = useRef(0);
+  const RELOAD_DURATION = 3; // 3 seconds reload
 
   // SE wind range: 120-150 degrees
   const SE_MIN = 120;
@@ -517,6 +520,24 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
 
     return () => clearInterval(timerInterval);
   }, [gameComplete]);
+
+  // Reload timer
+  useEffect(() => {
+    if (!isReloading) return;
+
+    const reloadInterval = setInterval(() => {
+      setReloadTime(prev => {
+        const newTime = prev + 0.1;
+        if (newTime >= RELOAD_DURATION) {
+          setIsReloading(false);
+          return 0;
+        }
+        return newTime;
+      });
+    }, 100);
+
+    return () => clearInterval(reloadInterval);
+  }, [isReloading]);
 
   // Enemy projectile spawning - every 2-4 seconds
   useEffect(() => {
@@ -648,8 +669,14 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
   };
 
   const handleLaunchFireShip = (shipId: number) => {
-    // Unlimited ammo - can shoot anytime
-    // No need to check launchedShips or missedShips
+    // Check if reloading
+    if (isReloading) {
+      const ship = fireShips.find(s => s.id === shipId);
+      if (ship) {
+        showFloatingText(ship.x, ship.y, 'Reloading...', '#f59e0b');
+      }
+      return;
+    }
 
     // Calculate hit quality based on timing
     const hitQuality = calculateHitQuality(windDirection);
@@ -679,6 +706,10 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
 
     // Add tick damage to boss
     setBossTickDamageCount(prev => prev + 1);
+
+    // Start reload
+    setIsReloading(true);
+    setReloadTime(0);
 
     // Show hit quality feedback
     const ship = fireShips.find(s => s.id === shipId);
@@ -763,6 +794,12 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
             <div className={`w-3 h-3 rounded-full ${isGoodWind ? 'bg-accent-coral animate-pulse' : 'bg-border'}`} />
             <span className="text-sm text-text">{t('fireShips')}: Unlimited</span>
           </div>
+          {isReloading && (
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
+              <span className="text-sm text-text">Reloading: {Math.ceil(RELOAD_DURATION - reloadTime)}s</span>
+            </div>
+          )}
         </div>
       </div>
 
