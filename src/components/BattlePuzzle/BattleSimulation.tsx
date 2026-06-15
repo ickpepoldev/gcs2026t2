@@ -410,12 +410,10 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
   const [windDirection, setWindDirection] = useState(135); // SE is ~135°
   const [health, setHealth] = useState(100);
   const [maxHealth] = useState(100);
-  const [enemyHealth] = useState(100);
+  const [enemyHealth, setEnemyHealth] = useState(100);
   const [maxEnemyHealth] = useState(100);
-  const [tickDamageCount, setTickDamageCount] = useState(0); // Active arrow wounds causing bleed
+  const [bossTickDamageCount, setBossTickDamageCount] = useState(0); // Player arrows causing bleed on boss
   const [chainedShips, setChainedShips] = useState<Set<number>>(new Set());
-  const [launchedShips, setLaunchedShips] = useState<Set<number>>(new Set());
-  const [missedShips, setMissedShips] = useState<Set<number>>(new Set());
   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
   const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number; text: string; color: string }[]>([]);
@@ -488,26 +486,26 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
     return () => clearInterval(healthInterval);
   }, [gameComplete, elapsedTime, onComplete]);
 
-  // Arrow tick damage - each arrow hit adds stacking bleed damage
+  // Boss tick damage - player arrows cause bleed on boss
   useEffect(() => {
-    if (gameComplete || tickDamageCount === 0) return;
+    if (gameComplete || bossTickDamageCount === 0) return;
 
     const tickInterval = setInterval(() => {
-      setHealth((prev) => {
-        const damage = tickDamageCount * 2; // Each arrow wound deals 2 HP/sec
+      setEnemyHealth((prev) => {
+        const damage = bossTickDamageCount * 3; // Each player arrow wound deals 3 HP/sec to boss
         const newHealth = Math.max(0, prev - damage);
         if (newHealth <= 0) {
           setGameComplete(true);
-          setGameWon(false);
-          calculateFinalScore(0, elapsedTime);
-          onComplete(0, false);
+          setGameWon(true);
+          const finalScore = calculateFinalScore(health, elapsedTime);
+          onComplete(finalScore, true);
         }
         return newHealth;
       });
     }, 1000);
 
     return () => clearInterval(tickInterval);
-  }, [gameComplete, tickDamageCount, elapsedTime, onComplete]);
+  }, [gameComplete, bossTickDamageCount, elapsedTime, onComplete]);
 
   // Game timer
   useEffect(() => {
@@ -520,12 +518,12 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
     return () => clearInterval(timerInterval);
   }, [gameComplete]);
 
-  // Enemy projectile spawning
+  // Enemy projectile spawning - every 2-4 seconds
   useEffect(() => {
     if (gameComplete) return;
 
     const spawnProjectile = () => {
-      const spawnInterval = Math.max(2000, 4000 - (100 - health) * 15); // Much slower arrows
+      const spawnInterval = 2000 + Math.random() * 2000; // 2-4 seconds
 
       const timeout = setTimeout(() => {
         if (gameComplete) return;
@@ -554,8 +552,6 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
             if (projectile) {
               // Arrow wasn't clicked - hit!
               takeDamage(5, randomTarget.x, randomTarget.y); // Arrow hit damage
-              // Add tick damage from arrow wound
-              setTickDamageCount(prev => prev + 1);
               return prev.filter((p) => p.id !== newProjectile.id);
             }
             return prev;
@@ -652,69 +648,45 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
   };
 
   const handleLaunchFireShip = (shipId: number) => {
-    if (launchedShips.has(shipId) || missedShips.has(shipId)) return;
-
-    // Must chain all enemy ships first!
-    if (chainedShips.size < weiShips.length) {
-      showFloatingText(
-        fireShips.find(s => s.id === shipId)?.x || 50,
-        fireShips.find(s => s.id === shipId)?.y || 80,
-        t('chainFirst'),
-        '#f59e0b'
-      );
-      return;
-    }
+    // Unlimited ammo - can shoot anytime
+    // No need to check launchedShips or missedShips
 
     // Calculate hit quality based on timing
     const hitQuality = calculateHitQuality(windDirection);
 
     if (hitQuality === 'miss') {
-      // Fire ship misses - it's wasted!
-      setMissedShips((prev) => new Set([...prev, shipId]));
-
-      // Show miss feedback
+      // Fire ship misses - just show feedback, no game over
       const ship = fireShips.find(s => s.id === shipId);
       if (ship) {
         showFloatingText(ship.x, ship.y, t('missLabel'), '#ef4444');
-      }
-
-      // Check if all ships are used up (launched or missed)
-      const totalUsed = launchedShips.size + missedShips.size + 1;
-      if (totalUsed >= fireShips.length) {
-        // No ships left - game over
-        setTimeout(() => {
-          setGameComplete(true);
-          setGameWon(false);
-          onComplete(0, false);
-        }, 1500);
       }
       return;
     }
 
     // Successful hit!
-    setLaunchedShips((prev) => {
-      const newSet = new Set(prev);
-      newSet.add(shipId);
-
-      // Show hit quality feedback
-      const ship = fireShips.find(s => s.id === shipId);
-      if (ship) {
-        const qualityText = hitQuality === 'perfect' ? t('perfectLabel') : t('hitLabel');
-        const qualityColor = hitQuality === 'perfect' ? '#22c55e' : '#eab308';
-        showFloatingText(ship.x, ship.y, qualityText, qualityColor);
+    // Deal initial damage to boss
+    const initialDamage = hitQuality === 'perfect' ? 15 : 10;
+    setEnemyHealth(prev => {
+      const newHealth = Math.max(0, prev - initialDamage);
+      if (newHealth <= 0) {
+        setGameComplete(true);
+        setGameWon(true);
+        const finalScore = calculateFinalScore(health, elapsedTime);
+        onComplete(finalScore, true);
       }
-
-      if (newSet.size === fireShips.length) {
-        setTimeout(() => {
-          setGameComplete(true);
-          setGameWon(true);
-          const finalScore = calculateFinalScore(health, elapsedTime);
-          onComplete(finalScore, true);
-        }, 2000);
-      }
-
-      return newSet;
+      return newHealth;
     });
+
+    // Add tick damage to boss
+    setBossTickDamageCount(prev => prev + 1);
+
+    // Show hit quality feedback
+    const ship = fireShips.find(s => s.id === shipId);
+    if (ship) {
+      const qualityText = hitQuality === 'perfect' ? t('perfectLabel') : t('hitLabel');
+      const qualityColor = hitQuality === 'perfect' ? '#22c55e' : '#eab308';
+      showFloatingText(ship.x, ship.y, qualityText, qualityColor);
+    }
   };
 
   // Show floating text feedback
@@ -724,21 +696,6 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
     setTimeout(() => {
       setFloatingTexts(prev => prev.filter(t => t.id !== id));
     }, 1500);
-  };
-
-  const recoverMissedShip = (shipId: number) => {
-    // Allow recovering a missed ship (click on it to reload)
-    setMissedShips((prev) => {
-      const newSet = new Set(prev);
-      newSet.delete(shipId);
-      return newSet;
-    });
-
-    // Small cost to recover
-    const ship = fireShips.find(s => s.id === shipId);
-    if (ship) {
-      takeDamage(2, ship.x, ship.y);
-    }
   };
 
   const resetGame = () => {
@@ -780,7 +737,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
       </div>
 
       {/* Tick Damage Indicator */}
-      <TickDamageIndicator count={tickDamageCount} />
+      <TickDamageIndicator count={bossTickDamageCount} />
 
       {/* Wind Indicator - Top Right */}
       <div className="absolute top-20 sm:top-24 right-2 sm:right-4 bg-surface/95 border-2 border-border p-2 sm:p-4 z-10">
@@ -803,8 +760,8 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
             <span className="text-sm text-text">{t('chainShips')}: {chainedShips.size}/{weiShips.length}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${launchedShips.size === fireShips.length ? 'bg-green-500' : isGoodWind ? 'bg-accent-coral animate-pulse' : 'bg-border'}`} />
-            <span className="text-sm text-text">{t('fireShips')}: {launchedShips.size}/{fireShips.length}</span>
+            <div className={`w-3 h-3 rounded-full ${isGoodWind ? 'bg-accent-coral animate-pulse' : 'bg-border'}`} />
+            <span className="text-sm text-text">{t('fireShips')}: Unlimited</span>
           </div>
         </div>
       </div>
@@ -958,64 +915,33 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
           {fireShips.map((ship, index) => (
             <motion.div
               key={ship.id}
-              className={`absolute transition-all duration-500 ${launchedShips.has(ship.id) ? 'opacity-0 pointer-events-none' :
-                missedShips.has(ship.id) ? 'opacity-30 pointer-events-none grayscale' :
-                  'cursor-pointer'
-                }`}
+              className="absolute cursor-pointer transition-all duration-500"
               style={{
                 left: `${ship.x}%`,
                 top: `${ship.y}%`,
               }}
               initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: launchedShips.has(ship.id) || missedShips.has(ship.id) ? 0.3 : 1,
-                y: launchedShips.has(ship.id) ? -50 : missedShips.has(ship.id) ? 0 : 0
-              }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.2 }}
               onClick={() => handleLaunchFireShip(ship.id)}
-              whileHover={missedShips.has(ship.id) ? {} : { scale: 1.1, y: -3 }}
-              whileTap={missedShips.has(ship.id) ? {} : { scale: 0.95 }}
+              whileHover={{ scale: 1.1, y: -3 }}
+              whileTap={{ scale: 0.95 }}
             >
-              {missedShips.has(ship.id) ? (
-                <div className="relative">
-                  <FireShipIcon isReady={false} />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-red-500 font-bold text-2xl">✗</span>
-                  </div>
-                </div>
-              ) : (
-                <FireShipIcon isReady={!missedShips.has(ship.id) && calculateHitQuality(windDirection) !== 'miss'} />
-              )}
+              <FireShipIcon isReady={calculateHitQuality(windDirection) !== 'miss'} />
 
               {/* Show hit quality status */}
-              {!missedShips.has(ship.id) && !launchedShips.has(ship.id) && (
-                <motion.div
-                  className={`absolute -top-4 left-1/2 transform -translate-x-1/2 text-xs font-bold whitespace-nowrap ${calculateHitQuality(windDirection) === 'perfect' ? 'text-green-400' :
-                    calculateHitQuality(windDirection) === 'good' ? 'text-yellow-400' :
-                      'text-red-400'
-                    }`}
-                  animate={calculateHitQuality(windDirection) !== 'miss' ? { opacity: [0.5, 1, 0.5] } : {}}
-                  transition={{ duration: 0.8, repeat: Infinity }}
-                >
-                  {calculateHitQuality(windDirection) === 'perfect' ? t('perfectLabel') :
-                    calculateHitQuality(windDirection) === 'good' ? t('goodLabel') :
-                      t('waitLabel')}
-                </motion.div>
-              )}
-
-              {missedShips.has(ship.id) && (
-                <motion.div
-                  className="absolute -top-4 left-1/2 transform -translate-x-1/2 text-red-500 text-xs font-bold whitespace-nowrap cursor-pointer"
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 1, repeat: Infinity }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    recoverMissedShip(ship.id);
-                  }}
-                >
-                  {t('missedLabel')} - {t('clickToRetry')}
-                </motion.div>
-              )}
+              <motion.div
+                className={`absolute -top-4 left-1/2 transform -translate-x-1/2 text-xs font-bold whitespace-nowrap ${calculateHitQuality(windDirection) === 'perfect' ? 'text-green-400' :
+                  calculateHitQuality(windDirection) === 'good' ? 'text-yellow-400' :
+                    'text-red-400'
+                  }`}
+                animate={calculateHitQuality(windDirection) !== 'miss' ? { opacity: [0.5, 1, 0.5] } : {}}
+                transition={{ duration: 0.8, repeat: Infinity }}
+              >
+                {calculateHitQuality(windDirection) === 'perfect' ? t('perfectLabel') :
+                  calculateHitQuality(windDirection) === 'good' ? t('goodLabel') :
+                    t('waitLabel')}
+              </motion.div>
             </motion.div>
           ))}
         </div>
