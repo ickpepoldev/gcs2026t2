@@ -470,33 +470,13 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
     return () => clearInterval(windInterval);
   }, [gameComplete]);
 
-  // Health drain over time
-  useEffect(() => {
-    if (gameComplete) return;
-
-    const healthInterval = setInterval(() => {
-      setHealth((prev) => {
-        const newHealth = Math.max(0, prev - 0.08); // Very gentle drain: 0.08% per second
-        if (newHealth <= 0) {
-          setGameComplete(true);
-          setGameWon(false);
-          calculateFinalScore(0, elapsedTime);
-          onComplete(0, false);
-        }
-        return newHealth;
-      });
-    }, 1000);
-
-    return () => clearInterval(healthInterval);
-  }, [gameComplete, elapsedTime, onComplete]);
-
-  // Boss tick damage - player arrows cause bleed on boss
+  // Boss tick damage - player arrows cause fire spread on boss
   useEffect(() => {
     if (gameComplete || bossTickDamageCount === 0) return;
 
     const tickInterval = setInterval(() => {
       setEnemyHealth((prev) => {
-        const damage = bossTickDamageCount * 3; // Each player arrow wound deals 3 HP/sec to boss
+        const damage = bossTickDamageCount * 5; // Each player arrow wound deals 5 HP/sec to boss (fire spread)
         const newHealth = Math.max(0, prev - damage);
         if (newHealth <= 0) {
           setGameComplete(true);
@@ -868,8 +848,8 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
       {/* Shoot Button */}
       <motion.button
         className={`absolute bottom-4 right-4 z-50 w-16 h-16 rounded-full border-2 flex items-center justify-center ${isReloading
-            ? 'bg-gray-600 border-gray-500 cursor-not-allowed opacity-50'
-            : 'bg-accent-coral border-accent-coral cursor-pointer hover:scale-110'
+          ? 'bg-gray-600 border-gray-500 cursor-not-allowed opacity-50'
+          : 'bg-accent-coral border-accent-coral cursor-pointer hover:scale-110'
           }`}
         whileHover={!isReloading ? { scale: 1.1 } : {}}
         whileTap={!isReloading ? { scale: 0.95 } : {}}
