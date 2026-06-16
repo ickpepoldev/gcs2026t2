@@ -429,7 +429,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
   const gameStartTime = useRef(Date.now());
   const projectileIdRef = useRef(0);
   const damageIdRef = useRef(0);
-  const RELOAD_DURATION = 3; // 3 seconds reload
+  const RELOAD_DURATION = 1; // 1 second reload
 
   // SE wind range: 120-150 degrees
   const SE_MIN = 120;
