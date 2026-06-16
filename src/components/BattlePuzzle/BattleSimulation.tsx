@@ -865,6 +865,51 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
         </div>
       </div>
 
+      {/* Shoot Button */}
+      <motion.button
+        className={`absolute bottom-4 right-4 z-50 w-16 h-16 rounded-full border-2 flex items-center justify-center ${isReloading
+            ? 'bg-gray-600 border-gray-500 cursor-not-allowed opacity-50'
+            : 'bg-accent-coral border-accent-coral cursor-pointer hover:scale-110'
+          }`}
+        whileHover={!isReloading ? { scale: 1.1 } : {}}
+        whileTap={!isReloading ? { scale: 0.95 } : {}}
+        onClick={() => {
+          if (phase === 1 && !isReloading && fireShips.length > 0) {
+            handleLaunchFireShip(fireShips[0].id);
+          }
+        }}
+        disabled={isReloading || phase !== 0}
+      >
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          {/* Bow */}
+          <path
+            d="M8,20 Q8,5 20,5 Q32,5 32,20 Q32,35 20,35 Q8,35 8,20"
+            stroke="#fff"
+            strokeWidth="2"
+            fill="none"
+          />
+          {/* Bowstring */}
+          <path
+            d="M8,20 Q20,25 32,20"
+            stroke="#fff"
+            strokeWidth="1"
+            fill="none"
+          />
+          {/* Arrow */}
+          <path
+            d="M20,20 L20,8"
+            stroke="#ff4757"
+            strokeWidth="2"
+          />
+          <path
+            d="M20,8 L17,11 M20,8 L23,11"
+            stroke="#ff4757"
+            strokeWidth="2"
+            fill="none"
+          />
+        </svg>
+      </motion.button>
+
       {/* Instructions */}
       <AnimatePresence mode="wait">
         {showHint && (
