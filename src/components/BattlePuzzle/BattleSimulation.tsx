@@ -688,9 +688,9 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
       const targetShip = weiShips[Math.floor(Math.random() * weiShips.length)];
 
       // Adjust target based on wind direction
-      const windOffset = (windDirection - 135) * 0.15; // Wind affects trajectory
-      const adjustedTargetX = Math.max(5, Math.min(95, targetShip.x + windOffset));
-      const adjustedTargetY = Math.max(5, Math.min(45, targetShip.y - Math.abs(windOffset) * 0.3));
+      const windOffset = (windDirection - 135) * 0.3; // Wind affects trajectory
+      const adjustedTargetX = targetShip.x + windOffset;
+      const adjustedTargetY = targetShip.y - Math.abs(windOffset) * 0.5;
 
       const newProjectile: Projectile = {
         id: projectileIdRef.current++,
@@ -941,7 +941,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
         {playerProjectiles.map((projectile) => {
           const progress = Math.min(1, (Date.now() - projectile.startTime) / projectile.duration);
           const currentX = projectile.x + (projectile.targetX - projectile.x) * progress;
-          const currentY = projectile.y + (projectile.targetY - projectile.y) * progress - Math.sin(progress * Math.PI) * 20; // Slight arc
+          const currentY = projectile.y + (projectile.targetY - projectile.y) * progress - Math.sin(progress * Math.PI) * 20;
           const rotation = Math.atan2(projectile.targetY - projectile.y, projectile.targetX - projectile.x) * 180 / Math.PI + 90;
 
           return (
@@ -953,36 +953,26 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
                 top: `${currentY}%`,
                 transform: 'translate(-50%, -50%)'
               }}
-              initial={{ opacity: 1, scale: 0.8 }}
-              animate={{ opacity: 0, scale: 1.5 }}
+              initial={{ opacity: 1, scale: 1 }}
+              animate={{ opacity: progress < 1 ? 1 : 0, scale: progress < 1 ? 1 : 0.5 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: 0.1 }}
             >
               <div className="relative">
-                {/* Fire arrow */}
-                <svg width="30" height="30" viewBox="0 0 30 30" style={{ transform: `rotate(${rotation}deg)` }}>
+                <svg width="40" height="40" viewBox="0 0 30 30" style={{ transform: `rotate(${rotation}deg)` }}>
                   <defs>
-                    <linearGradient id="fireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <linearGradient id={`fireGrad-${projectile.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#ff4757" />
                       <stop offset="50%" stopColor="#ff6b35" />
                       <stop offset="100%" stopColor="#ffaa00" />
                     </linearGradient>
-                    <filter id="fireGlow">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-                      <feMerge>
-                        <feMergeNode in="coloredBlur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
                   </defs>
                   <path
                     d="M15,5 L20,25 L15,20 L10,25 Z"
-                    fill="url(#fireGrad)"
-                    filter="url(#fireGlow)"
+                    fill={`url(#fireGrad-${projectile.id})`}
+                    style={{ filter: 'drop-shadow(0 0 4px #ff4757)' }}
                   />
-                  <circle cx="15" cy="5" r="4" fill="#ff4757" opacity="0.8">
-                    <animate attributeName="r" values="3;5;3" dur="0.3s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.8;0.4;0.8" dur="0.3s" repeatCount="indefinite" />
-                  </circle>
+                  <circle cx="15" cy="5" r="4" fill="#ff4757" opacity="0.8" />
                 </svg>
               </div>
             </motion.div>
