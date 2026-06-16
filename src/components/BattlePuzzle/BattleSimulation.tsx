@@ -688,9 +688,9 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
       const targetShip = weiShips[Math.floor(Math.random() * weiShips.length)];
 
       // Adjust target based on wind direction
-      const windOffset = (windDirection - 135) * 0.3; // Wind affects trajectory
-      const adjustedTargetX = targetShip.x + windOffset;
-      const adjustedTargetY = targetShip.y - Math.abs(windOffset) * 0.5;
+      const windOffset = (windDirection - 135) * 0.15; // Wind affects trajectory
+      const adjustedTargetX = Math.max(5, Math.min(95, targetShip.x + windOffset));
+      const adjustedTargetY = Math.max(5, Math.min(45, targetShip.y - Math.abs(windOffset) * 0.3));
 
       const newProjectile: Projectile = {
         id: projectileIdRef.current++,
