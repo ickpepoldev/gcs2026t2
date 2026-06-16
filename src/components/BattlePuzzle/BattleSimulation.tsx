@@ -804,12 +804,6 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
             <div className={`w-3 h-3 rounded-full ${isGoodWind ? 'bg-accent-coral animate-pulse' : 'bg-border'}`} />
             <span className="text-sm text-text">{t('fireShips')}: Unlimited</span>
           </div>
-          {isReloading && (
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
-              <span className="text-sm text-text">Reloading: {Math.ceil(RELOAD_DURATION - reloadTime)}s</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -858,7 +852,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
             handleLaunchFireShip(fireShips[0].id);
           }
         }}
-        disabled={isReloading || phase !== 0}
+        disabled={isReloading || phase !== 1}
       >
         <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
           {/* Bow */}
@@ -1079,6 +1073,17 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
                   calculateHitQuality(windDirection) === 'good' ? t('goodLabel') :
                     t('waitLabel')}
               </motion.div>
+
+              {/* Show reloading status above ship */}
+              {isReloading && (
+                <motion.div
+                  className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-yellow-500 text-xs font-bold bg-surface/90 px-2 py-1 border border-yellow-500"
+                  animate={{ opacity: [0.5, 1, 0.5] }}
+                  transition={{ duration: 0.8, repeat: Infinity }}
+                >
+                  Reloading: {Math.ceil(RELOAD_DURATION - reloadTime)}s
+                </motion.div>
+              )}
             </motion.div>
           ))}
         </div>
