@@ -415,6 +415,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
   const [bossTickDamageCount, setBossTickDamageCount] = useState(0); // Player arrows causing bleed on boss
   const [chainedShips, setChainedShips] = useState<Set<number>>(new Set());
   const [projectiles, setProjectiles] = useState<Projectile[]>([]);
+  const [playerProjectiles, setPlayerProjectiles] = useState<Projectile[]>([]);
   const [damageNumbers, setDamageNumbers] = useState<DamageNumber[]>([]);
   const [floatingTexts, setFloatingTexts] = useState<{ id: number; x: number; y: number; text: string; color: string }[]>([]);
   const [gameComplete, setGameComplete] = useState(false);
@@ -691,6 +692,27 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
     }
 
     // Successful hit!
+    // Create projectile animation
+    const playerShip = fireShips.find(s => s.id === shipId);
+    if (playerShip) {
+      const targetShip = weiShips[Math.floor(Math.random() * weiShips.length)];
+      const newProjectile: Projectile = {
+        id: projectileIdRef.current++,
+        x: playerShip.x,
+        y: playerShip.y,
+        targetX: targetShip.x,
+        targetY: targetShip.y,
+        startTime: Date.now(),
+        duration: 800, // Fast animation
+      };
+      setPlayerProjectiles(prev => [...prev, newProjectile]);
+
+      // Remove projectile after animation
+      setTimeout(() => {
+        setPlayerProjectiles(prev => prev.filter(p => p.id !== newProjectile.id));
+      }, newProjectile.duration);
+    }
+
     // Deal initial damage to boss
     const initialDamage = hitQuality === 'perfect' ? 15 : 10;
     setEnemyHealth(prev => {
@@ -712,11 +734,10 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
     setReloadTime(0);
 
     // Show hit quality feedback
-    const ship = fireShips.find(s => s.id === shipId);
-    if (ship) {
+    if (playerShip) {
       const qualityText = hitQuality === 'perfect' ? t('perfectLabel') : t('hitLabel');
       const qualityColor = hitQuality === 'perfect' ? '#22c55e' : '#eab308';
-      showFloatingText(ship.x, ship.y, qualityText, qualityColor);
+      showFloatingText(playerShip.x, playerShip.y, qualityText, qualityColor);
     }
   };
 
@@ -901,6 +922,60 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
               whileHover={{ scale: 1.3 }}
             >
               <ArrowIcon rotation={rotation} />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+
+      {/* Player Projectiles with fire animation */}
+      <AnimatePresence>
+        {playerProjectiles.map((projectile) => {
+          const progress = Math.min(1, (Date.now() - projectile.startTime) / projectile.duration);
+          const currentX = projectile.x + (projectile.targetX - projectile.x) * progress;
+          const currentY = projectile.y + (projectile.targetY - projectile.y) * progress - Math.sin(progress * Math.PI) * 20; // Slight arc
+          const rotation = Math.atan2(projectile.targetY - projectile.y, projectile.targetX - projectile.x) * 180 / Math.PI + 90;
+
+          return (
+            <motion.div
+              key={projectile.id}
+              className="absolute z-40"
+              style={{
+                left: `${currentX}%`,
+                top: `${currentY}%`,
+                transform: 'translate(-50%, -50%)'
+              }}
+              initial={{ opacity: 1, scale: 0.8 }}
+              animate={{ opacity: 0, scale: 1.5 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="relative">
+                {/* Fire arrow */}
+                <svg width="30" height="30" viewBox="0 0 30 30" style={{ transform: `rotate(${rotation}deg)` }}>
+                  <defs>
+                    <linearGradient id="fireGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#ff4757" />
+                      <stop offset="50%" stopColor="#ff6b35" />
+                      <stop offset="100%" stopColor="#ffaa00" />
+                    </linearGradient>
+                    <filter id="fireGlow">
+                      <feGaussianBlur stdDeviation="2" result="coloredBlur" />
+                      <feMerge>
+                        <feMergeNode in="coloredBlur" />
+                        <feMergeNode in="SourceGraphic" />
+                      </feMerge>
+                    </filter>
+                  </defs>
+                  <path
+                    d="M15,5 L20,25 L15,20 L10,25 Z"
+                    fill="url(#fireGrad)"
+                    filter="url(#fireGlow)"
+                  />
+                  <circle cx="15" cy="5" r="4" fill="#ff4757" opacity="0.8">
+                    <animate attributeName="r" values="3;5;3" dur="0.3s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.8;0.4;0.8" dur="0.3s" repeatCount="indefinite" />
+                  </circle>
+                </svg>
+              </div>
             </motion.div>
           );
         })}
