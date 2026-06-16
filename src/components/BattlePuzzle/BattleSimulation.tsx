@@ -847,7 +847,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
 
       {/* Shoot Button */}
       <motion.button
-        className={`absolute bottom-4 right-4 z-50 w-16 h-16 rounded-full border-2 flex items-center justify-center ${isReloading
+        className={`absolute bottom-4 right-4 z-50 w-16 h-16 rounded-full border-2 flex flex-col items-center justify-center ${isReloading
           ? 'bg-gray-600 border-gray-500 cursor-not-allowed opacity-50'
           : 'bg-accent-coral border-accent-coral cursor-pointer hover:scale-110'
           }`}
@@ -860,7 +860,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
         }}
         disabled={isReloading || phase !== 0}
       >
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+        <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
           {/* Bow */}
           <path
             d="M8,20 Q8,5 20,5 Q32,5 32,20 Q32,35 20,35 Q8,35 8,20"
@@ -888,6 +888,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
             fill="none"
           />
         </svg>
+        <span className="text-xs text-white font-bold mt-1">射击</span>
       </motion.button>
 
       {/* Instructions */}
