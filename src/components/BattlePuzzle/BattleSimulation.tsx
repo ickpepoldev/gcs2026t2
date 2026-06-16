@@ -553,7 +553,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
             const projectile = prev.find(p => p.id === newProjectile.id);
             if (projectile) {
               // Arrow wasn't clicked - hit!
-              takeDamage(5, randomTarget.x, randomTarget.y); // Arrow hit damage
+              takeDamage(2, randomTarget.x, randomTarget.y); // Arrow hit damage (reduced)
               return prev.filter((p) => p.id !== newProjectile.id);
             }
             return prev;
