@@ -682,26 +682,22 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
     // Calculate hit quality based on timing
     const hitQuality = calculateHitQuality(windDirection);
 
-    if (hitQuality === 'miss') {
-      // Fire ship misses - just show feedback, no game over
-      const ship = fireShips.find(s => s.id === shipId);
-      if (ship) {
-        showFloatingText(ship.x, ship.y, t('missLabel'), '#ef4444');
-      }
-      return;
-    }
-
-    // Successful hit!
-    // Create projectile animation
+    // Always create projectile animation
     const playerShip = fireShips.find(s => s.id === shipId);
     if (playerShip) {
       const targetShip = weiShips[Math.floor(Math.random() * weiShips.length)];
+
+      // Adjust target based on wind direction
+      const windOffset = (windDirection - 135) * 0.3; // Wind affects trajectory
+      const adjustedTargetX = targetShip.x + windOffset;
+      const adjustedTargetY = targetShip.y - Math.abs(windOffset) * 0.5;
+
       const newProjectile: Projectile = {
         id: projectileIdRef.current++,
         x: playerShip.x,
         y: playerShip.y,
-        targetX: targetShip.x,
-        targetY: targetShip.y,
+        targetX: adjustedTargetX,
+        targetY: adjustedTargetY,
         startTime: Date.now(),
         duration: 800, // Fast animation
       };
@@ -713,6 +709,19 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
       }, newProjectile.duration);
     }
 
+    if (hitQuality === 'miss') {
+      // Fire ship misses - just show feedback, no game over
+      const ship = fireShips.find(s => s.id === shipId);
+      if (ship) {
+        showFloatingText(ship.x, ship.y, t('missLabel'), '#ef4444');
+      }
+      // Start reload even on miss
+      setIsReloading(true);
+      setReloadTime(0);
+      return;
+    }
+
+    // Successful hit!
     // Deal initial damage to boss
     const initialDamage = hitQuality === 'perfect' ? 15 : 10;
     setEnemyHealth(prev => {
@@ -726,7 +735,7 @@ const BattleSimulation: React.FC<BattleSimulationProps> = ({ onComplete }) => {
       return newHealth;
     });
 
-    // Add tick damage to boss
+    // Add fire spread tick damage to boss
     setBossTickDamageCount(prev => prev + 1);
 
     // Start reload
